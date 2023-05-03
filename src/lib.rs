@@ -1,7 +1,10 @@
 mod bitboard;
+mod solver;
 
 use self::bitboard::Bitboard;
 use std::{fmt, io, str::FromStr};
+
+pub use solver::score;
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -42,7 +45,7 @@ enum Cell {
     PlayerTwo,
 }
 
-#[derive(Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct ConnectFour {
     /// One bitboard for each player
     bitboards: [Bitboard; 2],
@@ -57,13 +60,24 @@ impl ConnectFour {
     }
 
     /// Inserts a stone for the current player. `true` if move has been legal
-    fn play_move(&mut self, &Column(mov): &Column) -> bool {
-        if let Some(free) = (0..6).find(|&row| self.cell(row, mov) == Cell::Empty) {
-            self.bitboards[(self.stones() % 2) as usize].place_stone(free, mov);
+    pub fn play_move(&mut self, column: &Column) -> bool {
+        if let Some(free) = self.free_row(column) {
+            self.bitboards[(self.stones() % 2) as usize].place_stone(free, column.0);
             true
         } else {
             false
         }
+    }
+
+    /// Index of the first row which does not contain a stone in the specified column. `None` if the
+    /// entire column is filled.
+    pub fn free_row(&self, column: &Column) -> Option<u8> {
+        (0..6).find(|&row| self.cell(row, column.0) == Cell::Empty)
+    }
+
+    /// `true` if the column is not full.
+    pub fn is_legal_move(&self, column: &Column) -> bool {
+        self.free_row(column).is_some()
     }
 
     /// Create a game state from a sequence of moves.
@@ -115,9 +129,10 @@ impl ConnectFour {
         self.bitboards[0].stones() + self.bitboards[1].stones()
     }
 
-    /// `true` if player one has four in a row.
-    pub fn is_player_one_victory(&self) -> bool {
-        self.bitboards[0].is_win()
+    /// `true` if the player which did insert the last stone has one the game.
+    pub fn is_victory(&self) -> bool {
+        let player_index = self.stones() % 2;
+        self.bitboards[player_index as usize].is_win()
     }
 }
 
