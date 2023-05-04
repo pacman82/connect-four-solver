@@ -22,8 +22,8 @@ impl FromStr for Column {
     type Err = &'static str;
     fn from_str(source: &str) -> Result<Column, Self::Err> {
         match source.as_bytes().first() {
-            Some(v @ b'0'..=b'6') => Ok(Column(v - b'0')),
-            _ => Err("Only digits from 0 to 6 count as valid moves."),
+            Some(v @ b'1'..=b'7') => Ok(Column(v - b'1')),
+            _ => Err("Only digits from 1 to 7 count as valid moves."),
         }
     }
 }
@@ -80,13 +80,14 @@ impl ConnectFour {
         self.free_row(column).is_some()
     }
 
-    /// Create a game state from a sequence of moves.
+    /// Create a game state from a sequence of moves. Each move represented as a number from 1 to 7
+    /// standing for the column the player put in their stones.
     pub fn from_move_list(move_list: &str) -> ConnectFour {
         let mut game = ConnectFour::new();
         for c in move_list
             .as_bytes()
             .iter()
-            .map(|c| c - b'0')
+            .map(|c| c - b'1')
             .map(Column::from_index)
         {
             if !game.play_move(&c) {
@@ -109,7 +110,7 @@ impl ConnectFour {
             }
             writeln!(out, "|")?;
         }
-        writeln!(out, "---------------\n 0 1 2 3 4 5 6")
+        writeln!(out, "---------------\n 1 2 3 4 5 6 7")
     }
 
     /// Access any cell of the board and find out whether it is empty, or holding a stone of Player

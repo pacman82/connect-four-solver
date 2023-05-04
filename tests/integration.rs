@@ -9,8 +9,8 @@ fn should_detect_win_of_player_one() {
     // | | |X|X|X|X| |
     // | |O|X|X|X|O| |
     // ---------------
-    //  0 1 2 3 4 5 6
-    let game = ConnectFour::from_move_list("4544552531332");
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("5655663642443");
 
     assert!(game.is_victory());
 }
@@ -24,8 +24,8 @@ fn score_depth_one_victory() {
     // |O|O|O|X|X|O|O|
     // |X|X|O|X|X|X|O|
     // ---------------
-    //  0 1 2 3 4 5 6
-    let game = ConnectFour::from_move_list("1141465142351133000452254232560240330566");
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("2252576253462244111563365343671351441677");
     assert_eq!(1, score(&game))
 }
 
@@ -38,8 +38,8 @@ fn score_depth_two_victory() {
     // |O|O|O|X|X|O|O|
     // |X|X|O|X|X|X|O|
     // ---------------
-    //  0 1 2 3 4 5 6
-    let game = ConnectFour::from_move_list("114146514235113300045225423256024033056");
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("225257625346224411156336534367135144167");
     assert_eq!(-1, score(&game))
 }
 
@@ -52,8 +52,8 @@ fn score_depth_four_victory() {
     // |O|O|O|X|X|O|O|
     // |X|X|O|X|X|X|O|
     // ---------------
-    //  0 1 2 3 4 5 6
-    let game = ConnectFour::from_move_list("1141465142351133000452254232560240330");
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("2252576253462244111563365343671351441");
 
     assert_eq!(-1, score(&game))
 }
