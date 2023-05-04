@@ -1,3 +1,5 @@
+use std::{fs::File, io::{BufReader, BufRead}};
+
 use connect_four_solver::{score, ConnectFour};
 
 #[test]
@@ -56,4 +58,21 @@ fn score_depth_four_victory() {
     let game = ConnectFour::from_move_list("2252576253462244111563365343671351441");
 
     assert_eq!(-1, score(&game))
+}
+
+#[test]
+fn l3_r1() {
+    // Verify we give the correct score for each line in the dataset
+    let input = BufReader::new(File::open("./tests/Test_L3_R1").unwrap());
+
+    for line in input.lines() {
+        let line = line.unwrap();
+        let mut line_it = line.split_whitespace();
+        let game = ConnectFour::from_move_list(line_it.next().unwrap());
+        let expected_score: i32 = line_it.next().unwrap().parse().unwrap();
+
+        let actual_score = score(&game);
+
+        assert_eq!(expected_score, actual_score)
+    }
 }
