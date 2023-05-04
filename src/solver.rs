@@ -12,7 +12,7 @@ use crate::{Column, ConnectFour};
 /// his last stone. `-2` if he is winning second to last stone and so on.
 pub fn score(game: &ConnectFour) -> i32 {
     // Draw game
-    if game.stones() == 7 * 6 {
+    if game.stones() == 42 {
         return 0;
     }
 
@@ -23,14 +23,14 @@ pub fn score(game: &ConnectFour) -> i32 {
     }).any(|next| next.is_victory());
 
     if current_player_can_win_in_next_move {
-        return (7 * 6 + 1) - game.stones() as i32 / 2;
+        return (42 + 1 - game.stones() as i32) / 2;
     }
 
-    // Opponent gets
+    // Opponent gets to choose the best move for him
     let best_score_for_opponent = (0..7).filter_map(|col| {
         let mut next = *game;
         next.play_move(&Column::from_index(col)).then(|| score(&next))
-    }).max().expect("There must be at least one legal move");
+    }).min().expect("There must be at least one legal move");
 
     // Score from the perspective of the current player is the negative of the opponents.
     -best_score_for_opponent

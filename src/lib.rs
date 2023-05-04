@@ -7,7 +7,7 @@ use std::{fmt, io, str::FromStr};
 pub use solver::score;
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Column(u8);
 
 impl Column {
@@ -131,7 +131,7 @@ impl ConnectFour {
 
     /// `true` if the player which did insert the last stone has one the game.
     pub fn is_victory(&self) -> bool {
-        let player_index = self.stones() % 2;
+        let player_index = (self.stones() + 1) % 2;
         self.bitboards[player_index as usize].is_win()
     }
 }
