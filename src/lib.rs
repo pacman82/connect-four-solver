@@ -4,7 +4,7 @@ mod solver;
 use self::bitboard::Bitboard;
 use std::{fmt, io, str::FromStr};
 
-pub use solver::score;
+pub use solver::{score, score2};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

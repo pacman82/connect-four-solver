@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, BufRead}};
 
-use connect_four_solver::{score, ConnectFour};
+use connect_four_solver::{score, ConnectFour, score2};
 
 #[test]
 fn should_detect_win_of_player_one() {
@@ -72,6 +72,24 @@ fn l3_r1() {
         let expected_score: i32 = line_it.next().unwrap().parse().unwrap();
 
         let actual_score = score(&game);
+
+        assert_eq!(expected_score, actual_score)
+    }
+}
+
+#[test]
+#[ignore = "much slower"]
+fn l3_r1_score2() {
+    // Verify we give the correct score for each line in the dataset
+    let input = BufReader::new(File::open("./tests/Test_L3_R1").unwrap());
+
+    for line in input.lines() {
+        let line = line.unwrap();
+        let mut line_it = line.split_whitespace();
+        let game = ConnectFour::from_move_list(line_it.next().unwrap());
+        let expected_score: i32 = line_it.next().unwrap().parse().unwrap();
+
+        let actual_score = -score2(&game);
 
         assert_eq!(expected_score, actual_score)
     }
