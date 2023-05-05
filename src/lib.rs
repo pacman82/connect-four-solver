@@ -60,7 +60,7 @@ impl ConnectFour {
     }
 
     /// Inserts a stone for the current player. `true` if move has been legal
-    pub fn play_move(&mut self, column: &Column) -> bool {
+    pub fn play(&mut self, column: &Column) -> bool {
         if let Some(free) = self.free_row(column) {
             self.bitboards[(self.stones() % 2) as usize].place_stone(free, column.0);
             true
@@ -90,7 +90,7 @@ impl ConnectFour {
             .map(|c| c - b'1')
             .map(Column::from_index)
         {
-            if !game.play_move(&c) {
+            if !game.play(&c) {
                 panic!("Illegal move in String describing Connect Four Game")
             }
         }
