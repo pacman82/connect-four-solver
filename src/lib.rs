@@ -60,7 +60,7 @@ impl ConnectFour {
     }
 
     /// Inserts a stone for the current player. `true` if move has been legal
-    pub fn play(&mut self, column: &Column) -> bool {
+    pub fn play(&mut self, column: Column) -> bool {
         if let Some(free) = self.free_row(column) {
             self.bitboards[(self.stones() % 2) as usize].place_stone(free, column.0);
             true
@@ -71,12 +71,12 @@ impl ConnectFour {
 
     /// Index of the first row which does not contain a stone in the specified column. `None` if the
     /// entire column is filled.
-    pub fn free_row(&self, column: &Column) -> Option<u8> {
+    pub fn free_row(&self, column: Column) -> Option<u8> {
         (0..6).find(|&row| self.cell(row, column.0) == Cell::Empty)
     }
 
     /// `true` if the column is not full.
-    pub fn is_legal_move(&self, column: &Column) -> bool {
+    pub fn is_legal_move(&self, column: Column) -> bool {
         self.free_row(column).is_some()
     }
 
@@ -90,7 +90,7 @@ impl ConnectFour {
             .map(|c| c - b'1')
             .map(Column::from_index)
         {
-            if !game.play(&c) {
+            if !game.play(c) {
                 panic!("Illegal move in String describing Connect Four Game")
             }
         }

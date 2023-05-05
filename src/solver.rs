@@ -42,7 +42,7 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
     let current_player_can_win_in_next_move = (0..7)
         .filter_map(|col| {
             let mut next = *game;
-            next.play(&Column::from_index(col)).then_some(next)
+            next.play(Column::from_index(col)).then_some(next)
         })
         .any(|next| next.is_victory());
 
@@ -63,7 +63,7 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
     // We play the position which is the worst for our opponent
     for col in move_exploration_order {
         let mut next = *game;
-        if next.play(&col) {
+        if next.play(col) {
             // Score from the perspective of the current player is the negative of the opponents.
             let score = -alpha_beta(&next, -beta, -alpha);
             if score >= beta {
@@ -100,7 +100,7 @@ pub fn score2(game: &ConnectFour) -> i32 {
     let best_score_for_current_player = (0..7)
         .filter_map(|col| {
             let mut next = *game;
-            next.play(&Column::from_index(col)).then(|| score2(&next))
+            next.play(Column::from_index(col)).then(|| score2(&next))
         })
         .max()
         .expect("There must be at least one legal move");
