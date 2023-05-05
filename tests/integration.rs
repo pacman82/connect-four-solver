@@ -61,9 +61,30 @@ fn score_depth_four_victory() {
 }
 
 #[test]
-fn l3_r1() {
+fn end_easy() {
+    let test_data = "./tests/Test_L3_R1";
     // Verify we give the correct score for each line in the dataset
-    let input = BufReader::new(File::open("./tests/Test_L3_R1").unwrap());
+    verify_test_data(test_data);
+}
+
+#[test]
+#[ignore = "takes long"]
+fn middle_easy() {
+    let test_data = "./tests/Test_L2_R1";
+    // Verify we give the correct score for each line in the dataset
+    verify_test_data(test_data);
+}
+
+#[test]
+#[ignore = "takes long"]
+fn middle_medium() {
+    let test_data = "./tests/Test_L2_R2";
+    // Verify we give the correct score for each line in the dataset
+    verify_test_data(test_data);
+}
+
+fn verify_test_data(test_data: &str) {
+    let input = BufReader::new(File::open(test_data).unwrap());
 
     for line in input.lines() {
         let line = line.unwrap();
@@ -79,7 +100,7 @@ fn l3_r1() {
 
 #[test]
 #[ignore = "much slower"]
-fn l3_r1_score2() {
+fn end_easy_score_2() {
     // Verify we give the correct score for each line in the dataset
     let input = BufReader::new(File::open("./tests/Test_L3_R1").unwrap());
 
