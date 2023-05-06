@@ -48,8 +48,9 @@ enum Cell {
 
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct ConnectFour {
-    /// Bitborad encoding the stones of the current player.
-    current: PlayerStones,
+    /// Bitborad encoding the stones of the player who did insert the last stone. Starts with Player
+    /// two.
+    last: PlayerStones,
     /// Bitboard encoding all cells containing stones, no matter the player.
     both: AllStones,
 }
@@ -58,7 +59,7 @@ impl ConnectFour {
     /// Create an empty board
     pub fn new() -> ConnectFour {
         ConnectFour {
-            current: PlayerStones::new(),
+            last: PlayerStones::new(),
             both: AllStones::default(),
         }
     }
@@ -69,12 +70,10 @@ impl ConnectFour {
         if self.both.is_full(column.0) {
             return false;
         }
-        // After playing a stone, it is the others player turn, so we flip our bitmask representing
-        // the stones of our current player.
-        self.current.flip(self.both);
-        // Now we add a stone to the bitmask for both player. Since we already flipped the bitmask
-        // for the current player, we do so only for the bitmask containing stones of both players.
+        // Now we add a stone to the bitmask for both player.
         self.both.insert(column.0);
+        // Flip players after adding the stone, so the stone is accounted for the last player
+        self.last.flip(self.both);
         true
     }
 
@@ -122,10 +121,10 @@ impl ConnectFour {
         let players = [Cell::PlayerOne, Cell::PlayerTwo];
         if self.both.is_empty(row, column) {
             Cell::Empty
-        } else if self.current.is_empty(row, column) {
-            players[(self.both.stones() as usize + 1) % 2]
-        } else {
+        } else if self.last.is_empty(row, column) {
             players[self.both.stones() as usize % 2]
+        } else {
+            players[(self.both.stones() as usize + 1) % 2]
         }
     }
 
@@ -136,9 +135,7 @@ impl ConnectFour {
 
     /// `true` if the player which did insert the last stone has one the game.
     pub fn is_victory(&self) -> bool {
-        let mut last_players_stones = self.current;
-        last_players_stones.flip(self.both);
-        last_players_stones.is_win()
+        self.last.is_win()
     }
 }
 
