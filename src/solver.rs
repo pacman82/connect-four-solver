@@ -1,6 +1,6 @@
 use std::cmp::{max, min};
 
-use crate::{Column, ConnectFour};
+use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 
 /// Calculates the score of a connect four game. The score is set up so always picking the move with
 /// the lowest score results in perfect play. Perfect meaning winning as fast as possible, drawing
@@ -12,8 +12,10 @@ use crate::{Column, ConnectFour};
 /// end in a draw if both players play perfectly. A negative score means the opponent (the player
 /// which is not putting in the next stone) is winnig. It is `-1` if the opponent is winning with
 /// his last stone. `-2` if he is winning second to last stone and so on.
-pub fn score(game: &ConnectFour) -> i32 {
-    alpha_beta(game, -21, 21)
+pub fn score(game: &ConnectFour) -> i8 {
+    // 64Bit per entry. Let's hardcode it to use 64MB.
+    let mut cached_beta = TranspositionTable::new(8 * 1024 * 1024);
+    alpha_beta(game, -21, 21, &mut cached_beta)
 }
 
 /// Score of the position with alepha beta pruning.
@@ -21,7 +23,25 @@ pub fn score(game: &ConnectFour) -> i32 {
 /// * If actual score is smaller than alpha then: actual score <= return value <= alpha
 /// * If actual score is bigger than beta then: actual score >= return value >= beta
 /// * If score is within alpha beta window precise score is returned
-fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
+///
+/// If alpha is higher (or equal) than the score of this position, we can prune this position,
+/// because the current player would not play this route, since he is guaranteed to achieve a better
+/// outcome with some other play.
+///
+/// Similarly if this positions score is higher than beta we can prune it, since the opponent would
+/// choose a different line of play, which leavs him in a better position.
+///
+/// Alpha is a lower bound on what the current player can expect. Beta is as upper bound on what he
+/// can expect.
+fn alpha_beta(
+    game: &ConnectFour,
+    mut alpha: i8,
+    mut beta: i8,
+    cached_beta: &mut TranspositionTable,
+) -> i8 {
+
+    debug_assert!(alpha < beta);
+
     // Explore center moves first. These are better on average. This allows for faster pruning.
     let move_exploration_order = [
         Column::from_index(3),
@@ -38,7 +58,6 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
         return 0;
     }
 
-    // Check if current player can win with next move
     let current_player_can_win_in_next_move = (0..7)
         .filter_map(|col| {
             let mut next = *game;
@@ -46,13 +65,16 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
         })
         .any(|next| next.is_victory());
 
-    let score_if_current_player_wins_next_move = (42 + 1 - game.stones() as i32) / 2;
+    let score_if_current_player_wins_next_move = (42 + 1 - game.stones() as i8) / 2;
     if current_player_can_win_in_next_move {
         return score_if_current_player_wins_next_move;
     }
 
-    // Current player can not win in one move. This gives us an upper bound for the score
-    let max_score = score_if_current_player_wins_next_move - 1;
+    // Current player can not win in one move. This gives us an upper bound for the score.
+    // Alternatively we may even find an upper bound in the cache.
+    let max_score = cached_beta
+        .get(game.encode())
+        .unwrap_or(score_if_current_player_wins_next_move - 1);
     // Narrow the search window with new upper bound
     beta = min(beta, max_score);
     // Check if search window is empty. Prune exploration, if so.
@@ -65,7 +87,9 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
         let mut next = *game;
         if next.play(col) {
             // Score from the perspective of the current player is the negative of the opponents.
-            let score = -alpha_beta(&next, -beta, -alpha);
+            let score = -alpha_beta(&next, -beta, -alpha, cached_beta);
+            // prune the exploration if we find a possible move better than what we were looking
+            // for.
             if score >= beta {
                 return score;
             }
@@ -74,6 +98,8 @@ fn alpha_beta(game: &ConnectFour, mut alpha: i32, mut beta: i32) -> i32 {
         }
     }
 
+    // save the upper bound of the position
+    cached_beta.put(game.encode(), alpha);
     alpha
 }
 

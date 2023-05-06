@@ -1,5 +1,6 @@
 mod bitboard;
 mod solver;
+mod transposition_table;
 
 use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};

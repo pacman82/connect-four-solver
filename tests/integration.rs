@@ -92,7 +92,6 @@ fn end_easy() {
 }
 
 #[test]
-#[ignore = "takes long"]
 fn middle_easy() {
     let test_data = "./tests/Test_L2_R1";
     // Verify we give the correct score for each line in the dataset
@@ -114,7 +113,7 @@ fn verify_test_data(test_data: &str) {
         let line = line.unwrap();
         let mut line_it = line.split_whitespace();
         let game = ConnectFour::from_move_list(line_it.next().unwrap());
-        let expected_score: i32 = line_it.next().unwrap().parse().unwrap();
+        let expected_score: i8 = line_it.next().unwrap().parse().unwrap();
 
         let actual_score = score(&game);
 
