@@ -1,9 +1,10 @@
 mod bitboard;
 mod solver;
 
-use self::bitboard::Bitboard;
+use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};
 
+use bitboard::AllStones;
 pub use solver::{score, score2};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
@@ -48,19 +49,35 @@ enum Cell {
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct ConnectFour {
     /// One bitboard for each player
-    bitboards: [Bitboard; 2],
+    bitboards: [PlayerStones; 2],
+    /// Bitborad encoding the stones of the current player.
+    current: PlayerStones,
+    /// Bitboard encoding all cells containing stones, no matter the player.
+    both: AllStones,
 }
 
 impl ConnectFour {
     /// Create an empty board
     pub fn new() -> ConnectFour {
         ConnectFour {
-            bitboards: [Bitboard::new(); 2],
+            bitboards: [PlayerStones::new(); 2],
+            current: PlayerStones::new(),
+            both: AllStones::default(),
         }
     }
 
     /// Inserts a stone for the current player. `true` if move has been legal
     pub fn play(&mut self, column: Column) -> bool {
+        // Let's check if the move is legal, otherwise return false.
+        if self.both.is_full(column.0) {
+            return false;
+        }
+        // After playing a stone, it is the others player turn, so we flip our bitmask representing
+        // the stones of our current player.
+        self.current.flip(self.both);
+        // Now we add a stone to the bitmask for both player. Since we already flipped the bitmask
+        // for the current player, we do so only for the bitmask containing stones of both players.
+        self.both.insert(column.0);
         if let Some(free) = self.free_row(column) {
             self.bitboards[(self.stones() % 2) as usize].place_stone(free, column.0);
             true
@@ -77,7 +94,7 @@ impl ConnectFour {
 
     /// `true` if the column is not full.
     pub fn is_legal_move(&self, column: Column) -> bool {
-        self.free_row(column).is_some()
+        !self.both.is_full(column.0)
     }
 
     /// Create a game state from a sequence of moves. Each move represented as a number from 1 to 7

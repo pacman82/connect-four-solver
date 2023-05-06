@@ -1,6 +1,6 @@
 // Idea from: https://stackoverflow.com/questions/7033165/algorithm-to-check-a-connect-four-field
 
-/// Bitboard stones player one:
+/// Bitboard containing stones of one player:
 /// .  .  .  .  .  .  .  TOP
 /// 5 12 19 26 33 40 47
 /// 4 11 18 25 32 39 46
@@ -12,12 +12,12 @@
 ///
 /// `1` represents a stone of one player. `0` is an empty field, or a stone of the other player.
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
-pub struct Bitboard(u64);
+pub struct PlayerStones(u64);
 
-impl Bitboard {
+impl PlayerStones {
     /// Create empty Bitboard
-    pub fn new() -> Bitboard {
-        Bitboard(0)
+    pub fn new() -> PlayerStones {
+        PlayerStones(0)
     }
 
     /// Tells if the board has a stone in the specified place. The bottom row and the leftmost
@@ -59,20 +59,55 @@ impl Bitboard {
         self.0.count_ones() as u8
     }
 
+    /// Changes the bitmask to represent the stones of the other player
+    pub fn flip(&mut self, mask: AllStones) {
+        self.0 ^= mask.0
+    }
+
     /// Return a bitmask, with 0 everywhere but the Bit identifed by row and column
     fn cell(row: u8, column: u8) -> u64 {
         1u64 << (7 * column + row)
     }
 }
 
+/// Bitboard containing stones of both players. First seven bits represent first column, second
+/// seven bits the second column and so on.
+/// 
+/// .  .  .  .  .  .  .  TOP
+/// 5 12 19 26 33 40 47
+/// 4 11 18 25 32 39 46
+/// 3 10 17 24 31 38 45
+/// 2  9 16 23 30 37 44
+/// 1  8 15 22 29 36 43
+/// 0  7 14 21 28 35 42  BOTTOM
+/// The bits 6, 13, 20, 27, 34, 41, >= 48 have to be 0
+#[derive(Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub struct AllStones(u64);
+
+impl AllStones {
+
+    /// `true` if the column indentified by the index contains six stones.
+    pub fn is_full(self, column: u8) -> bool {
+        // Highest cell in the specified column. Shift "up" and then "right"
+        let mask_top_cell = 1u64 << 5 << (column * 7);
+        self.0 & mask_top_cell == 1
+    }
+
+    /// Add a stone into a column. User must check before if column is already full.
+    pub fn insert(&mut self, column: u8) {
+        let bottom_cell = 1u64 << (column * 7);
+        self.0 += bottom_cell;
+    }
+}
+
 #[cfg(test)]
 mod test {
 
-    use super::Bitboard;
+    use super::PlayerStones;
 
     #[test]
     fn place_stones() {
-        let mut board = Bitboard::new();
+        let mut board = PlayerStones::new();
         assert!(board.is_empty(0, 2));
         board.place_stone(0, 2);
         assert!(!board.is_empty(0, 2));
@@ -84,7 +119,7 @@ mod test {
 
     #[test]
     fn horizontal() {
-        let mut board = Bitboard::new();
+        let mut board = PlayerStones::new();
         board.place_stone(0, 1);
         assert!(!board.is_win());
         board.place_stone(0, 2);
@@ -97,7 +132,7 @@ mod test {
 
     #[test]
     fn vertical() {
-        let mut board = Bitboard::new();
+        let mut board = PlayerStones::new();
         board.place_stone(1, 2);
         assert!(!board.is_win());
         board.place_stone(2, 2);
@@ -110,7 +145,7 @@ mod test {
 
     #[test]
     fn diagonal1() {
-        let mut board = Bitboard::new();
+        let mut board = PlayerStones::new();
         board.place_stone(1, 1);
         assert!(!board.is_win());
         board.place_stone(2, 2);
@@ -123,7 +158,7 @@ mod test {
 
     #[test]
     fn diagonal2() {
-        let mut board = Bitboard::new();
+        let mut board = PlayerStones::new();
         board.place_stone(1, 4);
         assert!(!board.is_win());
         board.place_stone(2, 3);
