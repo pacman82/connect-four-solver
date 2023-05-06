@@ -60,6 +60,12 @@ impl PlayerStones {
     pub fn flip(&mut self, mask: AllStones) {
         self.0 ^= mask.0
     }
+
+    /// A unique key encoding the board. Starting from bit 49 everything is guaranteed to be zero.
+    /// Two different boards are guaranteed to have to different keys.
+    pub fn key(self, mask: AllStones) -> u64 {
+        self.0 + mask.0
+    }
 }
 
 /// Return a bitmask, with 0 everywhere but the Bit identifed by row and column

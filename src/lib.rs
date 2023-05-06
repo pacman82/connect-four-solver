@@ -137,6 +137,11 @@ impl ConnectFour {
     pub fn is_victory(&self) -> bool {
         self.last.is_win()
     }
+
+    /// Uses the first 49 Bits to uniquely encode the board.
+    pub fn encode(&self) -> u64 {
+        self.last.key(self.both)
+    }
 }
 
 impl fmt::Display for ConnectFour {
