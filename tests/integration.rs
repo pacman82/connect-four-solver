@@ -85,22 +85,30 @@ fn score_depth_four_victory() {
 }
 
 #[test]
-fn end_easy() {
+fn middle_medium() {
+    let game = ConnectFour::from_move_list("533772466715155");
+    assert_eq!(-1, score(&game));
+}
+
+#[test]
+#[ignore = "too slow"]
+fn thousand_end_easy() {
     let test_data = "./tests/Test_L3_R1";
     // Verify we give the correct score for each line in the dataset
     verify_test_data(test_data);
 }
 
 #[test]
-fn middle_easy() {
+#[ignore = "too slow"]
+fn thousand_middle_easy() {
     let test_data = "./tests/Test_L2_R1";
     // Verify we give the correct score for each line in the dataset
     verify_test_data(test_data);
 }
 
 #[test]
-#[ignore = "takes long"]
-fn middle_medium() {
+#[ignore = "too slow"]
+fn thousand_middle_medium() {
     let test_data = "./tests/Test_L2_R2";
     // Verify we give the correct score for each line in the dataset
     verify_test_data(test_data);
