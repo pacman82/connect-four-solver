@@ -1,6 +1,30 @@
-use std::{fs::File, io::{BufReader, BufRead}};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
-use connect_four_solver::{score, ConnectFour, score2};
+use connect_four_solver::{score, score2, ConnectFour};
+
+/// Construct game state from move list and print it correctly.
+#[test]
+fn construct_from_move_list() {
+    let game = ConnectFour::from_move_list("5655663642443");
+    let mut out = Vec::new();
+    game.print_to(&mut out).unwrap();
+    let out = String::from_utf8(out).unwrap();
+
+    let expected = "\
+        | | | | | | | |\n\
+        | | | | | | | |\n\
+        | | | | | |O| |\n\
+        | | | |O|O|O| |\n\
+        | | |X|X|X|X| |\n\
+        | |O|X|X|X|O| |\n\
+        ---------------\n \
+         1 2 3 4 5 6 7\n\
+    ";
+    assert_eq!(expected, out);
+}
 
 #[test]
 fn should_detect_win_of_player_one() {

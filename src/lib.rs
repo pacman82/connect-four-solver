@@ -48,8 +48,6 @@ enum Cell {
 
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct ConnectFour {
-    /// One bitboard for each player
-    bitboards: [PlayerStones; 2],
     /// Bitborad encoding the stones of the current player.
     current: PlayerStones,
     /// Bitboard encoding all cells containing stones, no matter the player.
@@ -60,7 +58,6 @@ impl ConnectFour {
     /// Create an empty board
     pub fn new() -> ConnectFour {
         ConnectFour {
-            bitboards: [PlayerStones::new(); 2],
             current: PlayerStones::new(),
             both: AllStones::default(),
         }
@@ -78,18 +75,7 @@ impl ConnectFour {
         // Now we add a stone to the bitmask for both player. Since we already flipped the bitmask
         // for the current player, we do so only for the bitmask containing stones of both players.
         self.both.insert(column.0);
-        if let Some(free) = self.free_row(column) {
-            self.bitboards[(self.stones() % 2) as usize].place_stone(free, column.0);
-            true
-        } else {
-            false
-        }
-    }
-
-    /// Index of the first row which does not contain a stone in the specified column. `None` if the
-    /// entire column is filled.
-    pub fn free_row(&self, column: Column) -> Option<u8> {
-        (0..6).find(|&row| self.cell(row, column.0) == Cell::Empty)
+        true
     }
 
     /// `true` if the column is not full.
@@ -133,24 +119,26 @@ impl ConnectFour {
     /// Access any cell of the board and find out whether it is empty, or holding a stone of Player
     /// One or Two.
     fn cell(&self, row: u8, column: u8) -> Cell {
-        if !self.bitboards[0].is_empty(row, column) {
-            Cell::PlayerOne
-        } else if !self.bitboards[1].is_empty(row, column) {
-            Cell::PlayerTwo
-        } else {
+        let players = [Cell::PlayerOne, Cell::PlayerTwo];
+        if self.both.is_empty(row, column) {
             Cell::Empty
+        } else if self.current.is_empty(row, column) {
+            players[(self.both.stones() as usize + 1) % 2]
+        } else {
+            players[self.both.stones() as usize % 2]
         }
     }
 
     /// Number of stones in the board
     pub fn stones(&self) -> u8 {
-        self.bitboards[0].stones() + self.bitboards[1].stones()
+        self.both.stones()
     }
 
     /// `true` if the player which did insert the last stone has one the game.
     pub fn is_victory(&self) -> bool {
-        let player_index = (self.stones() + 1) % 2;
-        self.bitboards[player_index as usize].is_win()
+        let mut last_players_stones = self.current;
+        last_players_stones.flip(self.both);
+        last_players_stones.is_win()
     }
 }
 

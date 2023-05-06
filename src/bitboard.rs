@@ -23,12 +23,13 @@ impl PlayerStones {
     /// Tells if the board has a stone in the specified place. The bottom row and the leftmost
     /// column are `0`.
     pub fn is_empty(self, row: u8, column: u8) -> bool {
-        (Self::cell(row, column) & self.0) == 0
+        (cell(row, column) & self.0) == 0
     }
 
     /// Place a stone a the specified position
+    #[cfg(test)]
     pub fn place_stone(&mut self, row: u8, column: u8) {
-        self.0 |= Self::cell(row, column)
+        self.0 |= cell(row, column)
     }
 
     pub fn is_win(self) -> bool {
@@ -55,24 +56,20 @@ impl PlayerStones {
         false
     }
 
-    pub fn stones(self) -> u8 {
-        self.0.count_ones() as u8
-    }
-
     /// Changes the bitmask to represent the stones of the other player
     pub fn flip(&mut self, mask: AllStones) {
         self.0 ^= mask.0
     }
+}
 
-    /// Return a bitmask, with 0 everywhere but the Bit identifed by row and column
-    fn cell(row: u8, column: u8) -> u64 {
-        1u64 << (7 * column + row)
-    }
+/// Return a bitmask, with 0 everywhere but the Bit identifed by row and column
+const fn cell(row: u8, column: u8) -> u64 {
+    1u64 << (7 * column + row)
 }
 
 /// Bitboard containing stones of both players. First seven bits represent first column, second
 /// seven bits the second column and so on.
-/// 
+///
 /// .  .  .  .  .  .  .  TOP
 /// 5 12 19 26 33 40 47
 /// 4 11 18 25 32 39 46
@@ -85,18 +82,26 @@ impl PlayerStones {
 pub struct AllStones(u64);
 
 impl AllStones {
-
     /// `true` if the column indentified by the index contains six stones.
     pub fn is_full(self, column: u8) -> bool {
         // Highest cell in the specified column. Shift "up" and then "right"
-        let mask_top_cell = 1u64 << 5 << (column * 7);
-        self.0 & mask_top_cell == 1
+        self.0 & cell(5, column) != 0
     }
 
     /// Add a stone into a column. User must check before if column is already full.
     pub fn insert(&mut self, column: u8) {
-        let bottom_cell = 1u64 << (column * 7);
-        self.0 += bottom_cell;
+        self.0 |= self.0 + cell(0, column);
+    }
+
+    /// Total number of stones in the board
+    pub fn stones(self) -> u8 {
+        self.0.count_ones() as u8
+    }
+
+    /// Tells if the board has a stone in the specified place. The bottom row and the leftmost
+    /// column are `0`.
+    pub fn is_empty(self, row: u8, column: u8) -> bool {
+        (cell(row, column) & self.0) == 0
     }
 }
 
