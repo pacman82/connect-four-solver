@@ -85,6 +85,19 @@ fn score_depth_four_victory() {
 }
 
 #[test]
+fn score_begin_easy() {
+    let game = ConnectFour::from_move_list("253733227554");
+    assert_eq!(-9, score(&game))
+}
+
+#[test]
+fn score_begin_medium() {
+    let game = ConnectFour::from_move_list("13555111322723");
+    assert_eq!(-1, score(&game))
+
+}
+
+#[test]
 fn middle_medium() {
     let game = ConnectFour::from_move_list("533772466715155");
     assert_eq!(-1, score(&game));
@@ -110,6 +123,14 @@ fn thousand_middle_easy() {
 #[ignore = "too slow"]
 fn thousand_middle_medium() {
     let test_data = "./tests/Test_L2_R2";
+    // Verify we give the correct score for each line in the dataset
+    verify_test_data(test_data);
+}
+
+#[test]
+#[ignore = "too slow"]
+fn thousand_begin_easy() {
+    let test_data = "./tests/Test_L1_R1";
     // Verify we give the correct score for each line in the dataset
     verify_test_data(test_data);
 }
