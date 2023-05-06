@@ -15,7 +15,30 @@ use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 pub fn score(game: &ConnectFour) -> i8 {
     // 64Bit per entry. Let's hardcode it to use 64MB.
     let mut cached_beta = TranspositionTable::new(8 * 1024 * 1024);
-    alpha_beta(game, -21, 21, &mut cached_beta)
+    let mut min = -(42 - game.stones() as i8) / 2;
+    let mut max = (42 + 1 - game.stones() as i8) / 2;
+
+    // Iterative deepening
+    while min < max {
+        let median = min + (max - min) / 2;
+        let alpha = if median <= 0 && min / 2 < median {
+            // Explore loosing path deeper
+            min / 2
+        } else if median >= 0 && max/2 > median {
+            // Explore winning path deeper
+            max / 2
+        } else {
+            median
+        };
+        let result = alpha_beta(game, alpha, alpha+1, &mut cached_beta);
+        if result <= alpha {
+            max = result;
+        } else {
+            min = result;
+        }
+    }
+    debug_assert_eq!(min, max);
+    min
 }
 
 /// Score of the position with alepha beta pruning.
