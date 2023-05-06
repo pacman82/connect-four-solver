@@ -13,8 +13,8 @@ use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 /// which is not putting in the next stone) is winnig. It is `-1` if the opponent is winning with
 /// his last stone. `-2` if he is winning second to last stone and so on.
 pub fn score(game: &ConnectFour) -> i8 {
-    // 64Bit per entry. Let's hardcode it to use 64MB.
-    let mut cached_beta = TranspositionTable::new(8 * 1024 * 1024);
+    // 64Bit per entry. Let's hardcode it to use a prime close to 64MB.
+    let mut cached_beta = TranspositionTable::new(8388593);
     let mut min = -(42 - game.stones() as i8) / 2;
     let mut max = (42 + 1 - game.stones() as i8) / 2;
 
