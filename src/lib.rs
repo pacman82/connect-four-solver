@@ -5,7 +5,7 @@ mod transposition_table;
 use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};
 
-use bitboard::AllStones;
+use bitboard::{AllStones, NonLoosingMoves};
 pub use solver::{score, score2};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
@@ -14,7 +14,7 @@ pub struct Column(u8);
 
 impl Column {
     /// Column index ranges from 0 to 6
-    pub fn from_index(index: u8) -> Column {
+    pub const fn from_index(index: u8) -> Column {
         assert!(index < 7);
         Column(index)
     }
@@ -149,6 +149,12 @@ impl ConnectFour {
         let mut current = self.last;
         current.flip(self.both);
         self.both.possible() & current.winning_positions() != 0
+    }
+
+    // Only valid to call if `can_win_in_next_move` is `false`.
+    fn non_loosing_moves(&self) -> NonLoosingMoves {
+        debug_assert!(!self.can_win_in_next_move());
+        NonLoosingMoves::new(self.last, self.both)
     }
 }
 

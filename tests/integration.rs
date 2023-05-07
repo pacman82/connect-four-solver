@@ -134,7 +134,7 @@ fn middle_medium() {
 }
 
 #[test]
-#[ignore = "too slow"]
+// #[ignore = "too slow"]
 fn thousand_end_easy() {
     let test_data = "./tests/Test_L3_R1";
     // Verify we give the correct score for each line in the dataset
@@ -142,7 +142,7 @@ fn thousand_end_easy() {
 }
 
 #[test]
-#[ignore = "too slow"]
+// #[ignore = "too slow"]
 fn thousand_middle_easy() {
     let test_data = "./tests/Test_L2_R1";
     // Verify we give the correct score for each line in the dataset
@@ -150,7 +150,7 @@ fn thousand_middle_easy() {
 }
 
 #[test]
-#[ignore = "too slow"]
+// #[ignore = "too slow"]
 fn thousand_middle_medium() {
     let test_data = "./tests/Test_L2_R2";
     // Verify we give the correct score for each line in the dataset
@@ -158,7 +158,7 @@ fn thousand_middle_medium() {
 }
 
 #[test]
-#[ignore = "too slow"]
+// #[ignore = "too slow"]
 fn thousand_begin_easy() {
     let test_data = "./tests/Test_L1_R1";
     // Verify we give the correct score for each line in the dataset

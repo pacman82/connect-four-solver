@@ -13,6 +13,16 @@ use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 /// which is not putting in the next stone) is winnig. It is `-1` if the opponent is winning with
 /// his last stone. `-2` if he is winning second to last stone and so on.
 pub fn score(game: &ConnectFour) -> i8 {
+    if game.is_victory() {
+        return score_from_num_stones(game.stones() as i8);
+    }
+
+    // Check if we can win in the next move because `alpha_beta` assumes that the next move can not
+    // win the game.
+    if game.can_win_in_next_move() {
+        return -score_from_num_stones(game.stones() as i8 + 1);
+    }
+
     // 64Bit per entry. Let's hardcode it to use a prime close to 64MB.
     let mut cached_beta = TranspositionTable::new(8388593);
     let mut min = -(42 - game.stones() as i8) / 2;
@@ -43,6 +53,9 @@ pub fn score(game: &ConnectFour) -> i8 {
 
 /// Score of the position with alepha beta pruning.
 ///
+/// Assumes that position can not be won in a single move. Assumes that position is not won position
+/// already.
+///
 /// * If actual score is smaller than alpha then: actual score <= return value <= alpha
 /// * If actual score is bigger than beta then: actual score >= return value >= beta
 /// * If score is within alpha beta window precise score is returned
@@ -63,56 +76,56 @@ fn alpha_beta(
     cached_beta: &mut TranspositionTable,
 ) -> i8 {
     debug_assert!(alpha < beta);
+    debug_assert!(!game.can_win_in_next_move());
 
     // Explore center moves first. These are better on average. This allows for faster pruning.
-    let move_exploration_order = [
-        Column::from_index(3),
-        Column::from_index(4),
-        Column::from_index(2),
-        Column::from_index(5),
-        Column::from_index(1),
-        Column::from_index(6),
-        Column::from_index(0),
-    ];
+    const MOVE_EXPLORATION_ORDER: [u8; 7] = [3, 4, 2, 5, 1, 6, 0];
 
-    // Draw game
-    if game.stones() == 42 {
+    let possibilities = game.non_loosing_moves();
+    if possibilities.is_empty() {
+        // If there are no possibilities for the current player not to loose, the opponent wins.
+        return score_from_num_stones(game.stones() as i8 + 2);
+    }
+
+    // Check for draw
+    if game.stones() >= 42 - 2 {
         return 0;
     }
 
-    let current_player_can_win_in_next_move = game.can_win_in_next_move();
-
-    let score_if_current_player_wins_next_move = (42 + 1 - game.stones() as i8) / 2;
-    if current_player_can_win_in_next_move {
-        return score_if_current_player_wins_next_move;
+    // Opponent can not win within one move, this gives us a lower bound for the score
+    alpha = max(alpha, score_from_num_stones(game.stones() as i8 + 4));
+    if alpha >= beta {
+        return alpha;
     }
 
-    // Current player can not win in one move. This gives us an upper bound for the score.
-    // Alternatively we may even find an upper bound in the cache.
-    let max_score = cached_beta
+    // We may also find an upper bound in the cache. If not we use the fact that we know we can not
+    // win with our next stone, which puts the fastest possible win at least three stones away.
+    let upper_bound_beta = cached_beta
         .get(game.encode())
-        .unwrap_or(score_if_current_player_wins_next_move - 1);
-    // Narrow the search window with new upper bound
-    beta = min(beta, max_score);
-    // Check if search window is empty. Prune exploration, if so.
-    if beta <= alpha {
+        .unwrap_or_else(|| -score_from_num_stones(game.stones() as i8 + 3));
+    beta = min(beta, upper_bound_beta);
+    if alpha >= beta {
         return beta;
     }
 
     // We play the position which is the worst for our opponent
-    for col in move_exploration_order {
-        let mut next = *game;
-        if next.play(col) {
-            // Score from the perspective of the current player is the negative of the opponents.
-            let score = -alpha_beta(&next, -beta, -alpha, cached_beta);
-            // prune the exploration if we find a possible move better than what we were looking
-            // for.
-            if score >= beta {
-                return score;
-            }
-            // We only need to search for positions, which are better than the best so far.
-            alpha = max(alpha, score);
+    for col in MOVE_EXPLORATION_ORDER {
+        if !possibilities.contains(col) {
+            // Discard any move which would loose the game immediatly
+            continue;
         }
+        let mut next = *game;
+        let is_legal = next.play(Column::from_index(col));
+        debug_assert!(is_legal);
+
+        // Score from the perspective of the current player is the negative of the opponents.
+        let score = -alpha_beta(&next, -beta, -alpha, cached_beta);
+        // prune the exploration if we find a possible move better than what we were looking for.
+        if score >= beta {
+            return score;
+        }
+        // We only need to search for positions, which are better than the best so far.
+        alpha = max(alpha, score);
     }
 
     // save the upper bound of the position
@@ -150,4 +163,14 @@ pub fn score2(game: &ConnectFour) -> i32 {
 
     // Score from the perspective of the current player is the negative of the opponents.
     -best_score_for_current_player
+}
+
+/// Score from the perspective of the current player (who can no longer move, because the game is
+/// over), assuming the last stone won after `num_stones`.
+fn score_from_num_stones(num_stones: i8) -> i8 {
+    // Remaining stones of the winning player.
+    let remaining_stones = (42 - num_stones) / 2;
+    // Score is from the perspective of the moving player. So if the current position is a win, it
+    // is negative.
+    -(remaining_stones + 1)
 }

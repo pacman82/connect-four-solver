@@ -155,9 +155,46 @@ impl AllStones {
     }
 }
 
+/// Bitmask representing all moves which do not give the opponent an immediate chance to win.
+#[derive(Clone, Copy)]
+pub struct NonLoosingMoves(u64);
+
+impl NonLoosingMoves {
+    pub fn new(opponent: PlayerStones, both: AllStones) -> Self {
+        // Check if we need to block a stone, to prevent the opponent from winning
+        let openings = opponent.winning_positions();
+        let mut possible = both.possible();
+        let forced_moves = openings & possible;
+        if forced_moves != 0 {
+            // If there are more than two, we can not prevent the opponent from winning.
+            if forced_moves & (forced_moves - 1) != 0 {
+                return Self(0);
+            }
+            possible = forced_moves;
+        };
+        // Do not play below an opening to prevent giving opponent a winning move
+        possible &= !(openings >> 1);
+        Self(possible)
+    }
+
+    pub fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+
+    /// `true` if throwing a stone in the indexed column is not loosing immediatly.
+    pub fn contains(self, index: u8) -> bool {
+        self.0 & column(index) != 0
+    }
+}
+
+/// Mask a column with all `1`s
+fn column(index: u8) -> u64 {
+    0b111111 << (index * (6 + 1))
+}
+
 /// Mask with one stone in each column of the board
 #[allow(clippy::unusual_byte_groupings)] // Group by column rather than byte ;-)
-const FULL: u64 = 0b0111111_0111111_0111111_0111111_0111111_0111111_0111111_0111111u64;
+const FULL: u64 = 0b0111111_0111111_0111111_0111111_0111111_0111111_0111111u64;
 
 #[cfg(test)]
 mod test {
