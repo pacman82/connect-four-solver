@@ -143,6 +143,13 @@ impl ConnectFour {
     pub fn encode(&self) -> u64 {
         self.last.key(self.both)
     }
+
+    /// `true` if the current player has winning moves available
+    pub fn can_win_in_next_move(&self) -> bool {
+        let mut current = self.last;
+        current.flip(self.both);
+        self.both.possible() & current.winning_positions() != 0
+    }
 }
 
 impl fmt::Display for ConnectFour {

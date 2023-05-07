@@ -62,8 +62,7 @@ impl Entry {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ConnectFour, score};
-
+    use crate::ConnectFour;
     use super::{Entry, TranspositionTable};
 
     #[test]
@@ -81,7 +80,7 @@ mod tests {
     #[test]
     fn cache_hit() {
         let position = ConnectFour::from_move_list("5655663642443");
-        let score = score(&position);
+        let score = 15;
 
         let mut cache = TranspositionTable::new(1024);
         cache.put(position.encode(), score);
@@ -93,7 +92,7 @@ mod tests {
     fn cache_miss() {
         let position = ConnectFour::from_move_list("5655663642443");
         let other_position = ConnectFour::from_move_list("5655663642442");
-        let score = score(&position);
+        let score = 15;
 
         let mut cache = TranspositionTable::new(1024);
         cache.put(position.encode(), score);

@@ -24,13 +24,13 @@ pub fn score(game: &ConnectFour) -> i8 {
         let alpha = if median <= 0 && min / 2 < median {
             // Explore loosing path deeper
             min / 2
-        } else if median >= 0 && max/2 > median {
+        } else if median >= 0 && max / 2 > median {
             // Explore winning path deeper
             max / 2
         } else {
             median
         };
-        let result = alpha_beta(game, alpha, alpha+1, &mut cached_beta);
+        let result = alpha_beta(game, alpha, alpha + 1, &mut cached_beta);
         if result <= alpha {
             max = result;
         } else {
@@ -62,7 +62,6 @@ fn alpha_beta(
     mut beta: i8,
     cached_beta: &mut TranspositionTable,
 ) -> i8 {
-
     debug_assert!(alpha < beta);
 
     // Explore center moves first. These are better on average. This allows for faster pruning.
@@ -81,12 +80,7 @@ fn alpha_beta(
         return 0;
     }
 
-    let current_player_can_win_in_next_move = (0..7)
-        .filter_map(|col| {
-            let mut next = *game;
-            next.play(Column::from_index(col)).then_some(next)
-        })
-        .any(|next| next.is_victory());
+    let current_player_can_win_in_next_move = game.can_win_in_next_move();
 
     let score_if_current_player_wins_next_move = (42 + 1 - game.stones() as i8) / 2;
     if current_player_can_win_in_next_move {

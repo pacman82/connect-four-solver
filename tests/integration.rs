@@ -42,6 +42,36 @@ fn should_detect_win_of_player_one() {
 }
 
 #[test]
+fn can_not_win_with_next_move() {
+    // |X|O|O|O|X|O| |
+    // |O|X|O|X|X|X| |
+    // |X|O|O|X|O|O| |
+    // |X|O|X|O|X|X|X|
+    // |O|O|O|X|X|O|O|
+    // |X|X|O|X|X|X|O|
+    // ---------------
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("225257625346224411156336534367135144167");
+
+    assert!(!game.can_win_in_next_move())
+}
+
+#[test]
+fn can_win_with_next_move() {
+    // | | | | | | | |
+    // | | | | | | | |
+    // | | | | | | | |
+    // | |O|O|X|X| | |
+    // | |X|X|O|O| |X|
+    // | |X|X|O|O|X|O|
+    // ---------------
+    //  1 2 3 4 5 6 7
+    let game = ConnectFour::from_move_list("253733227554644");
+
+    assert!(game.can_win_in_next_move())
+}
+
+#[test]
 fn score_depth_one_victory() {
     // |X|O|O|O|X|O| |
     // |O|X|O|X|X|X| |
