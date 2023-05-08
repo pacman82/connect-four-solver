@@ -5,7 +5,7 @@ mod transposition_table;
 use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};
 
-use bitboard::{AllStones, NonLoosingMoves, heuristic};
+use bitboard::{heuristic, AllStones, NonLoosingMoves};
 pub use solver::{score, score2};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
@@ -155,6 +155,11 @@ impl ConnectFour {
         let mut current = self.last;
         current.flip(self.both);
         self.both.possible() & current.winning_positions() != 0
+    }
+
+    /// `true` if game has a winner or is a draw.
+    pub fn is_over(&self) -> bool {
+        self.stones() == 42 || self.is_victory()
     }
 
     // Only valid to call if `can_win_in_next_move` is `false`.
