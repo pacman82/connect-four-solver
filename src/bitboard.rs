@@ -187,6 +187,13 @@ impl NonLoosingMoves {
     }
 }
 
+pub fn heuristic(player: PlayerStones, both: AllStones) -> u32 {
+    let openings = player.winning_positions();
+    // only count openings, which are not blocked by enemy stones already
+    let true_openings = openings & !(both.0);
+    true_openings.count_ones()
+}
+
 /// Mask a column with all `1`s
 fn column(index: u8) -> u64 {
     0b111111 << (index * (6 + 1))

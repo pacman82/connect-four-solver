@@ -5,7 +5,7 @@ mod transposition_table;
 use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};
 
-use bitboard::{AllStones, NonLoosingMoves};
+use bitboard::{AllStones, NonLoosingMoves, heuristic};
 pub use solver::{score, score2};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
@@ -127,6 +127,12 @@ impl ConnectFour {
         } else {
             players[(self.both.stones() as usize + 1) % 2]
         }
+    }
+
+    /// Heurisitc used to decide which moves to explore first, in order to allow for better pruning
+    /// of the search tree. Higher means better for the player which put in the last stone.
+    fn heuristic(&self) -> u32 {
+        heuristic(self.last, self.both)
     }
 
     /// Number of stones in the board
