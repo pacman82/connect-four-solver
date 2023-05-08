@@ -78,9 +78,6 @@ fn alpha_beta(
     debug_assert!(alpha < beta);
     debug_assert!(!game.can_win_in_next_move());
 
-    // Explore center moves first. These are better on average. This allows for faster pruning.
-    const MOVE_EXPLORATION_ORDER: [u8; 7] = [3, 4, 2, 5, 1, 6, 0];
-
     let possibilities = game.non_loosing_moves();
     if possibilities.is_empty() {
         // If there are no possibilities for the current player not to loose, the opponent wins.
@@ -108,18 +105,18 @@ fn alpha_beta(
         return beta;
     }
 
-    // We play the position which is the worst for our opponent
-    for col in MOVE_EXPLORATION_ORDER {
-        if !possibilities.contains(col) {
-            // Discard any move which would loose the game immediatly
-            continue;
+    let mut move_explorer = MoveExplorer::new();
+    for col in 0..7 {
+        if possibilities.contains(col) {
+            move_explorer.add(col, game);
         }
-        let mut next = *game;
-        let is_legal = next.play(Column::from_index(col));
-        debug_assert!(is_legal);
+    }
+    move_explorer.sort();
 
+    // We play the position which is the worst for our opponent
+    for position in move_explorer.next_positions() {
         // Score from the perspective of the current player is the negative of the opponents.
-        let score = -alpha_beta(&next, -beta, -alpha, cached_beta);
+        let score = -alpha_beta(&position, -beta, -alpha, cached_beta);
         // prune the exploration if we find a possible move better than what we were looking for.
         if score >= beta {
             return score;
@@ -173,4 +170,47 @@ fn score_from_num_stones(num_stones: i8) -> i8 {
     // Score is from the perspective of the moving player. So if the current position is a win, it
     // is negative.
     -(remaining_stones + 1)
+}
+
+/// Stack allocated container for possible moves. Iterates over moves in a fashion which allows to
+/// prune the search tree sooner.
+struct MoveExplorer {
+    /// Up to seven indices are possible. Store index, score and position.
+    col_indices: [(u8, u32, ConnectFour); 7],
+    /// Up to this index the moves are valid.
+    len: usize,
+}
+
+impl MoveExplorer {
+    pub fn new() -> Self {
+        Self {
+            col_indices: [(0, 0, ConnectFour::new()); 7],
+            len: 0,
+        }
+    }
+
+    pub fn add(&mut self, col_index: u8, from: &ConnectFour) {
+        let mut next_position = *from;
+        let is_legal = next_position.play(Column::from_index(col_index));
+        debug_assert!(is_legal);
+        let score = next_position.heuristic();
+        self.col_indices[self.len] = (col_index, score, next_position);
+        self.len += 1;
+    }
+
+    pub fn sort(&mut self) {
+        /// Indices which should get explored first get smaller values. Explore center moves first.
+        /// These are better on average. This allows for faster pruning.
+        const COLUMN_PRIORITY: [u8; 7] = [6, 4, 2, 0, 1, 3, 5];
+        self.col_indices[..self.len].sort_unstable_by(|a, b| {
+            // sort by score first, then by column priority. We prefer higher scores, therfore a, b
+            // are switched in order.
+            b.1.cmp(&a.1)
+                .then_with(|| COLUMN_PRIORITY[a.0 as usize].cmp(&COLUMN_PRIORITY[b.0 as usize]))
+        });
+    }
+
+    pub fn next_positions(&self) -> impl Iterator<Item = ConnectFour> + '_ {
+        self.col_indices[..self.len].iter().map(|(_, _, pos)| *pos)
+    }
 }
