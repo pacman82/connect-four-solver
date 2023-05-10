@@ -130,38 +130,6 @@ fn alpha_beta(
     alpha
 }
 
-/// Calculates the score of a connect four game. The score is set up so always picking the move with
-/// the highest score results in perfect play. Perfect meaning winning as fast as possible, drawing
-/// or loosing as late as possible.
-///
-/// A positive score means the player who did put in the last stone can win. Positions which can be
-/// won faster are scored higher. The score is one if the last player can win with his last stone.
-/// Two if he can win with his second to last stone and so on. A score of zero means the game will
-/// end in a draw if both players play perfectly. A negative score means the opponent (the player
-/// which is not putting the next stone) is winnig. It is `-1` if the opponent is winning with his
-/// last stone. `-2` if he is winning second to last stone and so on.
-pub fn score2(game: &ConnectFour) -> i32 {
-    if game.is_victory() {
-        let player_stones_left = (42 - game.stones() as i32) / 2;
-        return player_stones_left + 1;
-    }
-    // Draw game
-    if game.stones() == 42 {
-        return 0;
-    }
-
-    let best_score_for_current_player = (0..7)
-        .filter_map(|col| {
-            let mut next = *game;
-            next.play(Column::from_index(col)).then(|| score2(&next))
-        })
-        .max()
-        .expect("There must be at least one legal move");
-
-    // Score from the perspective of the current player is the negative of the opponents.
-    -best_score_for_current_player
-}
-
 /// Score from the perspective of the current player (who can no longer move, because the game is
 /// over), assuming the last stone won after `num_stones`.
 fn score_from_num_stones(num_stones: i8) -> i8 {

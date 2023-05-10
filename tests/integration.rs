@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use connect_four_solver::{score, score2, ConnectFour};
+use connect_four_solver::{score, ConnectFour};
 
 /// Construct game state from move list and print it correctly.
 #[test]
@@ -175,24 +175,6 @@ fn verify_test_data(test_data: &str) {
         let expected_score: i8 = line_it.next().unwrap().parse().unwrap();
 
         let actual_score = score(&game);
-
-        assert_eq!(expected_score, actual_score)
-    }
-}
-
-#[test]
-#[ignore = "much slower"]
-fn end_easy_score_2() {
-    // Verify we give the correct score for each line in the dataset
-    let input = BufReader::new(File::open("./tests/Test_L3_R1").unwrap());
-
-    for line in input.lines() {
-        let line = line.unwrap();
-        let mut line_it = line.split_whitespace();
-        let game = ConnectFour::from_move_list(line_it.next().unwrap());
-        let expected_score: i32 = line_it.next().unwrap().parse().unwrap();
-
-        let actual_score = -score2(&game);
 
         assert_eq!(expected_score, actual_score)
     }
