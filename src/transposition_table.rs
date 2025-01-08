@@ -1,88 +1,67 @@
 /// Stores the score of board positions, so we do not need to recompute it, if the same position
 /// comes up again.
 pub struct TranspositionTable {
-    entries: Vec<Entry>,
+    // Stores the last 32 bits of the board, i.e. board modulo 2 ^ 32.
+    keys: Vec<u32>,
+    scores: Vec<i8>,
 }
 
 impl TranspositionTable {
     pub fn new(capacity: usize) -> Self {
+        // Capacity must be odd, so it is a coprime (i.e. it has no common prime factors) a power of
+        // two.
+        assert!(capacity % 2 == 1);
+        // 49 Bits uniquely encode the board. => Max key is 2 ^ 49.
+        // capacity is coprime to 2 ^ 32, and S * 2 ^ 32 greater than the max possible full key, the
+        // chinese remainder theorem guarantees that the index, key pair is unique. 
+        assert!(capacity * (2 ^ 32) > 2 ^ 49);
         Self {
-            entries: vec![Entry::EMPTY; capacity],
+            // We use 0, to represent a cache miss
+            keys: vec![0; capacity],
+            scores: vec![0; capacity],
         }
     }
 
     pub fn put(&mut self, board: u64, score: i8) {
         let index = self.index(board);
-        self.entries[index] = Entry::new(board, score);
+        self.keys[index] = Self::key(board);
+        self.scores[index] = score;
     }
 
     pub fn get(&self, board: u64) -> Option<i8> {
-        let entry = self.entries[self.index(board)];
-        if entry.board() == board {
-            Some(entry.score())
+        let index = self.index(board);
+        let found_key = self.keys[index];
+        if found_key == Self::key(board) {
+            // Hit
+            Some(self.scores[index])
         } else {
+            // Miss
             None
         }
     }
 
+    fn key(board: u64) -> u32 {
+        board as u32
+    }
+
     fn index(&self, board: u64) -> usize {
-        (board % self.entries.len() as u64) as usize
-    }
-}
-
-/// We store both the position and the score in the same 64Bit integer.
-#[derive(Clone, Copy)]
-pub struct Entry([u8; 8]);
-
-impl Entry {
-    /// Lower 56 Bits are reserved for the board.
-    const MASK_BOARD: u64 = (1 << 56) - 1;
-
-    /// An entry encoding an invalid board which could never occurr during normal play, and can
-    /// therfore be used to represent a cache miss.
-    const EMPTY: Entry = Entry::new(Self::MASK_BOARD, 0);
-
-    pub const fn new(position: u64, score: i8) -> Self {
-        let mut bytes = position.to_le_bytes();
-        debug_assert!(bytes[7] == 0);
-        bytes[7] = score.to_ne_bytes()[0];
-        Entry(bytes)
-    }
-
-    pub fn score(self) -> i8 {
-        i8::from_ne_bytes([self.0[7]])
-    }
-
-    pub fn board(self) -> u64 {
-        let mut bytes = self.0;
-        bytes[7] = 0;
-        u64::from_le_bytes(bytes)
+        (board % self.keys.len() as u64) as usize
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::ConnectFour;
-    use super::{Entry, TranspositionTable};
-
-    #[test]
-    fn save_and_load() {
-        // Just a random number I came up with, does most likely not represent a valid position, but
-        // all that matters for this tests, is that it fits in 56 bits.
-        let board: u64 = 60_115_128_075_855_851;
-        let score = -12;
-        let entry = Entry::new(board, score);
-
-        assert_eq!(score, entry.score());
-        assert_eq!(board, entry.board());
-    }
+    use super::TranspositionTable;
 
     #[test]
     fn cache_hit() {
         let position = ConnectFour::from_move_list("5655663642443");
         let score = 15;
 
-        let mut cache = TranspositionTable::new(1024);
+        // 131101 next prime after 131073 which is the smallest valid number for the transposition
+        // table to work correctly.
+        let mut cache = TranspositionTable::new(131101);
         cache.put(position.encode(), score);
 
         assert_eq!(cache.get(position.encode()), Some(score));
@@ -94,7 +73,7 @@ mod tests {
         let other_position = ConnectFour::from_move_list("5655663642442");
         let score = 15;
 
-        let mut cache = TranspositionTable::new(1024);
+        let mut cache = TranspositionTable::new(131101);
         cache.put(position.encode(), score);
 
         assert_eq!(cache.get(other_position.encode()), None);
