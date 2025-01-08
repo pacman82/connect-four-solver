@@ -1,6 +1,6 @@
 use std::io::{stdin, stdout, self, BufRead};
 
-use connect_four_solver::{score, Column, ConnectFour};
+use connect_four_solver::{Column, ConnectFour, Solver};
 
 fn main() -> io::Result<()>{
     println!("\
@@ -10,6 +10,7 @@ fn main() -> io::Result<()>{
     let mut game = ConnectFour::new();
     let mut input = stdin().lock();
     let mut line = String::new();
+    let mut solver = Solver::new();
 
     while !game.is_over() {
         game.print_to(stdout())?;
@@ -17,7 +18,7 @@ fn main() -> io::Result<()>{
         line.clear();
         input.read_line(&mut line)?;
         if line.trim() == "s"{
-            print_scores(game);
+            print_scores(game, &mut solver);
             continue;
         }
         if let Ok(col) = line.parse() {
@@ -31,7 +32,7 @@ fn main() -> io::Result<()>{
     Ok(())
 }
 
-fn print_scores(game: ConnectFour) {
+fn print_scores(game: ConnectFour, solver: &mut Solver) {
     for col_index in 0..7 {
         if !game.is_legal_move(Column::from_index(col_index)) {
             continue;
@@ -39,7 +40,7 @@ fn print_scores(game: ConnectFour) {
 
         let mut game_copy = game;
         if game_copy.play(Column::from_index(col_index)) {
-            let score = score(&game_copy);
+            let score = solver.score(&game_copy);
             let col = col_index + 1;
             let stones_to_end = stones_to_end(game.stones() as i8, score);
             let result_msg = match score.signum() {

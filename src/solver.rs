@@ -2,6 +2,68 @@ use std::cmp::{max, min};
 
 use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 
+/// Reusing the same solver instead of repeatedly running score in order to calculate similar
+/// positions, may have performance benefits, because we can reuse the transposition table.
+pub struct Solver {
+    transposition_table: TranspositionTable,
+}
+
+impl Default for Solver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Solver {
+    pub fn new() -> Solver {
+        // 64Bit per entry. Let's hardcode it to use a prime close to 16777213 which multiplied by 8
+        // Byte should be close to 128MiB.
+        let transposition_table = TranspositionTable::new(16777213);
+        Solver {
+            transposition_table,
+        }
+    }
+
+    pub fn score(&mut self, game: &ConnectFour) -> i8 {
+        if game.is_victory() {
+            return score_from_num_stones(game.stones() as i8);
+        }
+    
+        // Check if we can win in the next move because `alpha_beta` assumes that the next move can not
+        // win the game.
+        if game.can_win_in_next_move() {
+            return -score_from_num_stones(game.stones() as i8 + 1);
+        }
+    
+        // 64Bit per entry. Let's hardcode it to use a prime close to 16777213 which multiplied by 8
+        // Byte should be close to 128MiB.
+        let mut min = -(42 - game.stones() as i8) / 2;
+        let mut max = (42 + 1 - game.stones() as i8) / 2;
+    
+        // Iterative deepening
+        while min < max {
+            let median = min + (max - min) / 2;
+            let alpha = if median <= 0 && min / 2 < median {
+                // Explore loosing path deeper
+                min / 2
+            } else if median >= 0 && max / 2 > median {
+                // Explore winning path deeper
+                max / 2
+            } else {
+                median
+            };
+            let result = alpha_beta(game, alpha, alpha + 1, &mut self.transposition_table);
+            if result <= alpha {
+                max = result;
+            } else {
+                min = result;
+            }
+        }
+        debug_assert_eq!(min, max);
+        min
+    }
+}
+
 /// Calculates the score of a connect four game. The score is set up so always picking the move with
 /// the lowest score results in perfect play. Perfect meaning winning as fast as possible, drawing
 /// or loosing as late as possible.
@@ -13,43 +75,7 @@ use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
 /// which is not putting in the next stone) is winnig. It is `-1` if the opponent is winning with
 /// his last stone. `-2` if he is winning second to last stone and so on.
 pub fn score(game: &ConnectFour) -> i8 {
-    if game.is_victory() {
-        return score_from_num_stones(game.stones() as i8);
-    }
-
-    // Check if we can win in the next move because `alpha_beta` assumes that the next move can not
-    // win the game.
-    if game.can_win_in_next_move() {
-        return -score_from_num_stones(game.stones() as i8 + 1);
-    }
-
-    // 64Bit per entry. Let's hardcode it to use a prime close to 16777213 which multiplied by 8
-    // Byte should be close to 128MiB.
-    let mut cached_beta = TranspositionTable::new(16777213);
-    let mut min = -(42 - game.stones() as i8) / 2;
-    let mut max = (42 + 1 - game.stones() as i8) / 2;
-
-    // Iterative deepening
-    while min < max {
-        let median = min + (max - min) / 2;
-        let alpha = if median <= 0 && min / 2 < median {
-            // Explore loosing path deeper
-            min / 2
-        } else if median >= 0 && max / 2 > median {
-            // Explore winning path deeper
-            max / 2
-        } else {
-            median
-        };
-        let result = alpha_beta(game, alpha, alpha + 1, &mut cached_beta);
-        if result <= alpha {
-            max = result;
-        } else {
-            min = result;
-        }
-    }
-    debug_assert_eq!(min, max);
-    min
+    Solver::new().score(game)
 }
 
 /// Score of the position with alepha beta pruning.

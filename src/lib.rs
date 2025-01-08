@@ -6,7 +6,7 @@ use self::bitboard::PlayerStones;
 use std::{fmt, io, str::FromStr};
 
 use bitboard::{heuristic, AllStones, NonLoosingMoves};
-pub use solver::score;
+pub use solver::{score, Solver};
 
 /// An integer ranging from 0 to 6 representing a column of the connect four board.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
