@@ -23,8 +23,9 @@ pub fn score(game: &ConnectFour) -> i8 {
         return -score_from_num_stones(game.stones() as i8 + 1);
     }
 
-    // 64Bit per entry. Let's hardcode it to use a prime close to 64MB.
-    let mut cached_beta = TranspositionTable::new(8388593);
+    // 64Bit per entry. Let's hardcode it to use a prime close to 16777213 which multiplied by 8
+    // Byte should be close to 128MiB.
+    let mut cached_beta = TranspositionTable::new(16777213);
     let mut min = -(42 - game.stones() as i8) / 2;
     let mut max = (42 + 1 - game.stones() as i8) / 2;
 
