@@ -1,6 +1,6 @@
 use std::io::{stdin, stdout, self, BufRead};
 
-use connect_four_solver::{Column, ConnectFour, Solver};
+use connect_four_solver::{ConnectFour, Solver};
 
 fn main() -> io::Result<()>{
     println!("\
@@ -33,15 +33,10 @@ fn main() -> io::Result<()>{
 }
 
 fn print_scores(game: ConnectFour, solver: &mut Solver) {
-    for col_index in 0..7 {
-        if !game.is_legal_move(Column::from_index(col_index)) {
-            continue;
-        }
-
+    for col in game.legal_moves() {
         let mut game_copy = game;
-        if game_copy.play(Column::from_index(col_index)) {
+        if game_copy.play(col) {
             let score = solver.score(&game_copy);
-            let col = col_index + 1;
             let stones_to_end = stones_to_end(game.stones() as i8, score);
             let result_msg = match score.signum() {
                 0 => "Draw",

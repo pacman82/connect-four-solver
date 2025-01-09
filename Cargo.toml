@@ -5,6 +5,7 @@ edition = "2021"
 description = "A strong and perfect connect four solver in Rust"
 repository = "https://github.com/pacman82/connect-four-solver/"
 license = "AGPL-3.0"
+default-run = "connect-four-solver"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
