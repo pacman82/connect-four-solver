@@ -8,7 +8,7 @@ use crate::ConnectFour;
 /// `1` indicates that up to one stones everything is precalculated, i.e. the first position of the
 /// board. `2` would indicate that up to two stones everything is precalculated, i.e. every board
 /// with one stone in it, and so on.
-const NUM_STONES_PRECALCULATED_UP_TO: u8 = 5;
+const NUM_STONES_PRECALCULATED_UP_TO: u8 = 6;
 
 const PRECALCULATED_INPUT_BYTES: &[u8] = include_bytes!("./scores.dat");
 
