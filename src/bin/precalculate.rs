@@ -7,7 +7,7 @@ use std::{
 
 use connect_four_solver::{ConnectFour, Solver};
 
-const PRECALULATE_UP_TO_NUM_STONES: usize = 2;
+const PRECALULATE_UP_TO_NUM_STONES: usize = 3;
 
 fn main() {
     // Hold all unique game positions for `n` stones at index n.
