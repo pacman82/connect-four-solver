@@ -8,7 +8,7 @@ use std::{
 use connect_four_solver::{score, ConnectFour};
 use rayon::iter::{IntoParallelRefIterator, ParallelExtend, ParallelIterator};
 
-const PRECALULATE_UP_TO_NUM_STONES: usize = 6;
+const PRECALULATE_UP_TO_NUM_STONES: usize = 7;
 
 fn main() {
     // Hold all unique game positions for `n` stones at index n.
