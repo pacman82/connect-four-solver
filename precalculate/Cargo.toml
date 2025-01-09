@@ -1,0 +1,8 @@
+[package]
+name = "precalculate"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+connect-four-solver = { path = "../" }
+rayon = "1.10.0"
