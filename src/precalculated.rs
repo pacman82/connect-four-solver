@@ -10,13 +10,15 @@ use crate::ConnectFour;
 /// with one stone in it, and so on.
 const NUM_STONES_PRECALCULATED_UP_TO: u8 = 4;
 
+const PRECALCULATED_INPUT_BYTES: &[u8] = include_bytes!("./scores.dat");
+
 /// Number of unique postions with precalculated scores. Look at the ouput of preallocated to learn
 /// this number.
-const NUM_SCORES_PRECALCULATED: usize = 295;
+const NUM_SCORES_PRECALCULATED: usize = PRECALCULATED_INPUT_BYTES.len() / (8 + 1);
 const PRECALCULATED: [(u64, i8); NUM_SCORES_PRECALCULATED] = load_precalculated();
 
 const fn load_precalculated() -> [(u64, i8); NUM_SCORES_PRECALCULATED] {
-    let input_bytes = include_bytes!("./scores.dat");
+    let input_bytes = PRECALCULATED_INPUT_BYTES;
     let mut result = [(0, 0); NUM_SCORES_PRECALCULATED];
     let mut index = 0;
     let length = 8 + 1; // 8 bytes for the board, 1 byte for the score
