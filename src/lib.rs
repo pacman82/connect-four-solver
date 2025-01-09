@@ -1,4 +1,5 @@
 mod bitboard;
+mod precalculated;
 mod solver;
 mod transposition_table;
 
@@ -32,7 +33,7 @@ impl FromStr for Column {
 
 impl fmt::Display for Column {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Column: {}", self.0)
+        write!(f, "{}", self.0 + 1)
     }
 }
 
@@ -114,6 +115,10 @@ impl ConnectFour {
             writeln!(out, "|")?;
         }
         writeln!(out, "---------------\n 1 2 3 4 5 6 7")
+    }
+
+    pub fn legal_moves(&self) -> impl Iterator<Item = Column> + use<'_>{
+        (0..7).map(Column::from_index).filter(move |&c| self.is_legal_move(c))
     }
 
     /// Access any cell of the board and find out whether it is empty, or holding a stone of Player

@@ -1,6 +1,8 @@
 use std::cmp::{max, min};
 
-use crate::{transposition_table::TranspositionTable, Column, ConnectFour};
+use crate::{
+    precalculated::precalculated_score, transposition_table::TranspositionTable, Column, ConnectFour
+};
 
 /// Reusing the same solver instead of repeatedly running score in order to calculate similar
 /// positions, may have performance benefits, because we can reuse the transposition table.
@@ -25,21 +27,26 @@ impl Solver {
     }
 
     pub fn score(&mut self, game: &ConnectFour) -> i8 {
+        precalculated_score(game)
+            .unwrap_or_else(|| self.score_without_precalculated(game))
+    }
+
+    fn score_without_precalculated(&mut self, game: &ConnectFour) -> i8 {
         if game.is_victory() {
             return score_from_num_stones(game.stones() as i8);
         }
-    
+
         // Check if we can win in the next move because `alpha_beta` assumes that the next move can not
         // win the game.
         if game.can_win_in_next_move() {
             return -score_from_num_stones(game.stones() as i8 + 1);
         }
-    
+
         // 64Bit per entry. Let's hardcode it to use a prime close to 16777213 which multiplied by 8
         // Byte should be close to 128MiB.
         let mut min = -(42 - game.stones() as i8) / 2;
         let mut max = (42 + 1 - game.stones() as i8) / 2;
-    
+
         // Iterative deepening
         while min < max {
             let median = min + (max - min) / 2;
