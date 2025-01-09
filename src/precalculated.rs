@@ -8,14 +8,14 @@ use crate::ConnectFour;
 /// `1` indicates that up to one stones everything is precalculated, i.e. the first position of the
 /// board. `2` would indicate that up to two stones everything is precalculated, i.e. every board
 /// with one stone in it, and so on.
-const NUM_STONES_PRECALCULATED_UP_TO: u8 = 4;
+const NUM_STONES_PRECALCULATED_UP_TO: u8 = 5;
 
 const PRECALCULATED_INPUT_BYTES: &[u8] = include_bytes!("./scores.dat");
 
 /// Number of unique postions with precalculated scores. Look at the ouput of preallocated to learn
 /// this number.
 const NUM_SCORES_PRECALCULATED: usize = PRECALCULATED_INPUT_BYTES.len() / (8 + 1);
-const PRECALCULATED: [(u64, i8); NUM_SCORES_PRECALCULATED] = load_precalculated();
+static PRECALCULATED: [(u64, i8); NUM_SCORES_PRECALCULATED] = load_precalculated();
 
 const fn load_precalculated() -> [(u64, i8); NUM_SCORES_PRECALCULATED] {
     let input_bytes = PRECALCULATED_INPUT_BYTES;
