@@ -145,7 +145,7 @@ impl ConnectFour {
         self.both.stones()
     }
 
-    /// `true` if the player which did insert the last stone has one the game.
+    /// `true` if the player which did insert the last stone has won the game.
     pub fn is_victory(&self) -> bool {
         self.last.is_win()
     }
