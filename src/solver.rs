@@ -1,4 +1,4 @@
-use std::cmp::{max, min};
+use std::cmp::{max, min, Ordering};
 
 use crate::{
     precalculated::precalculated_score, transposition_table::TranspositionTable, Column, ConnectFour
@@ -26,6 +26,16 @@ impl Solver {
         }
     }
 
+    /// Calculates the score of a connect four game. The score is set up so always picking the move with
+    /// the lowest score results in perfect play. Perfect meaning winning as fast as possible, drawing
+    /// or loosing as late as possible.
+    ///
+    /// A positive score means the player who can put in the next stone can win. Positions which can be
+    /// won faster are scored higher. The score is 1 if the current player can win with his last stone.
+    /// Two if he can win with his second to last stone and so on. A score of zero means the game will
+    /// end in a draw if both players play perfectly. A negative score means the opponent (the player
+    /// which is not putting in the next stone) is winnig. It is `-1` if the opponent is winning with
+    /// his last stone. `-2` if he is winning second to last stone and so on.
     pub fn score(&mut self, game: &ConnectFour) -> i8 {
         precalculated_score(game)
             .unwrap_or_else(|| self.score_without_precalculated(game))
@@ -68,6 +78,30 @@ impl Solver {
         }
         debug_assert_eq!(min, max);
         min
+    }
+
+    /// Fills `best_moves` with all the legal moves, which have the best strong score.
+    pub fn best_moves(&mut self, game: &ConnectFour, best_moves: &mut Vec<Column>) {
+        if game.is_over() {
+            return;
+        }
+        let mut min = i8::MAX;
+        for column in game.legal_moves() {
+            let mut board = *game;
+            board.play(column);
+            let score = self.score(&board);
+            match score.cmp(&min) {
+                Ordering::Less => {
+                    min = score; 
+                    best_moves.clear();
+                    best_moves.push(column);
+                },
+                Ordering::Equal => {
+                    best_moves.push(column);
+                },
+                Ordering::Greater => (),
+            };
+        }
     }
 }
 

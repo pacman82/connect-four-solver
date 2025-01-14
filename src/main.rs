@@ -5,7 +5,7 @@ use connect_four_solver::{ConnectFour, Solver};
 fn main() -> io::Result<()>{
     println!("\
         Place a stone in the connect four board by typing the column number 1-7. Press s to
-        calculate score of current position.");
+        calculate score of current position. Use `p` to pick the first best move.");
 
     let mut game = ConnectFour::new();
     let mut input = stdin().lock();
@@ -17,8 +17,19 @@ fn main() -> io::Result<()>{
 
         line.clear();
         input.read_line(&mut line)?;
-        if line.trim() == "s"{
+        let line = line.trim();
+        if line == "s"{
             print_scores(game, &mut solver);
+            continue;
+        }
+        if line == "p" {
+            let mut best_moves = Vec::new();
+            solver.best_moves(&game, &mut best_moves);
+            if let Some(&col) = best_moves.first() {
+                game.play(col);
+            } else {
+                println!("No legal moves left.");
+            }
             continue;
         }
         if let Ok(col) = line.parse() {
@@ -28,6 +39,7 @@ fn main() -> io::Result<()>{
             continue;
         };
     }
+    game.print_to(stdout())?;
 
     Ok(())
 }
