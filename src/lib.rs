@@ -103,18 +103,7 @@ impl ConnectFour {
 
     /// Prints out a text representation of a board to `out`
     pub fn print_to(&self, mut out: impl io::Write) -> io::Result<()> {
-        for row in (0..6).rev() {
-            for field in (0..7).map(|column| self.cell(row, column)) {
-                let c = match field {
-                    Cell::PlayerOne => 'X',
-                    Cell::PlayerTwo => 'O',
-                    Cell::Empty => ' ',
-                };
-                write!(out, "|{}", c)?;
-            }
-            writeln!(out, "|")?;
-        }
-        writeln!(out, "---------------\n 1 2 3 4 5 6 7")
+        write!(out, "{self}")
     }
 
     pub fn legal_moves(&self) -> impl Iterator<Item = Column> + use<'_>{
@@ -187,6 +176,6 @@ impl fmt::Display for ConnectFour {
             }
             writeln!(f, "|")?;
         }
-        writeln!(f, "---------------\n 0 1 2 3 4 5 6")
+        writeln!(f, "---------------\n 1 2 3 4 5 6 7")
     }
 }
