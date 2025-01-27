@@ -160,7 +160,7 @@ impl AllStones {
 pub struct NonLoosingMoves(u64);
 
 impl NonLoosingMoves {
-    pub fn new(opponent: PlayerStones, both: AllStones) -> Self {
+    pub (crate) fn new(opponent: PlayerStones, both: AllStones) -> Self {
         // Check if we need to block a stone, to prevent the opponent from winning
         let openings = opponent.winning_positions();
         let mut possible = both.possible();
@@ -177,11 +177,14 @@ impl NonLoosingMoves {
         Self(possible)
     }
 
+    /// `true` if there are no moves left, which do not prevent the opponent from winning with in
+    /// his/her next turn.
     pub fn is_empty(self) -> bool {
         self.0 == 0
     }
 
-    /// `true` if throwing a stone in the indexed column is not loosing immediatly.
+    /// `true` if throwing a stone in the indexed column is not loosing immediatly in the next
+    /// opponents turn.
     pub fn contains(self, index: u8) -> bool {
         self.0 & column(index) != 0
     }

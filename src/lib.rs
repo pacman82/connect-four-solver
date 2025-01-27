@@ -48,6 +48,10 @@ enum Cell {
     PlayerTwo,
 }
 
+/// Implementation of the Connect Four game. The board is implemented as to 64 bit masks. It allows
+/// for fast checking of winning conditions and legal moves. Apart from being able to play connect
+/// four, this type also features some utility functions which can help with implementations of
+/// heuristics and solvers.
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct ConnectFour {
     /// Bitborad encoding the stones of the player who did insert the last stone. Starts with Player
@@ -157,7 +161,7 @@ impl ConnectFour {
     }
 
     // Only valid to call if `can_win_in_next_move` is `false`.
-    fn non_loosing_moves(&self) -> NonLoosingMoves {
+    pub fn non_loosing_moves(&self) -> NonLoosingMoves {
         debug_assert!(!self.can_win_in_next_move());
         NonLoosingMoves::new(self.last, self.both)
     }
