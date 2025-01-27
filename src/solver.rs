@@ -146,7 +146,7 @@ fn alpha_beta(
     debug_assert!(alpha < beta);
     debug_assert!(!game.can_win_in_next_move());
 
-    let possibilities = game.non_loosing_moves();
+    let possibilities = game.non_loosing_moves_impl();
     if possibilities.is_empty() {
         // If there are no possibilities for the current player not to loose, the opponent wins.
         return score_from_num_stones(game.stones() as i8 + 2);

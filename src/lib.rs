@@ -160,8 +160,16 @@ impl ConnectFour {
         self.stones() == 42 || self.is_victory()
     }
 
+    /// List all moves, which prevent the opponet from winning immediately. Only gives valid results
+    /// if [`Self::can_win_in_next_move`] is `false`.
+    pub fn non_loosing_moves(&self) -> impl Iterator<Item = Column> {
+        debug_assert!(!self.can_win_in_next_move());
+        let nlm = self.non_loosing_moves_impl();
+        (0..7).filter(move |&i| nlm.contains(i)).map(Column::from_index)
+    }
+
     // Only valid to call if `can_win_in_next_move` is `false`.
-    pub fn non_loosing_moves(&self) -> NonLoosingMoves {
+    fn non_loosing_moves_impl(&self) -> NonLoosingMoves {
         debug_assert!(!self.can_win_in_next_move());
         NonLoosingMoves::new(self.last, self.both)
     }

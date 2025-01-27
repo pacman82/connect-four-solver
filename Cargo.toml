@@ -1,6 +1,6 @@
 [package]
 name = "connect-four-solver"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 description = "A strong and perfect connect four solver in Rust"
 repository = "https://github.com/pacman82/connect-four-solver/"
